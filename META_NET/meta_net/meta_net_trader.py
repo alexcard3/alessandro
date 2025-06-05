@@ -48,26 +48,28 @@ class MetaNetTrader:
         return self._input
 
     def genera_segnale(self):
-        """Combina gli input convertiti con i pesi per produrre il segnale finale.
+        """Produce il segnale finale della Meta-Net.
+
+        Gli input numerici devono essere stati caricati con :meth:`input_segnali`.
+        I pesi vengono calcolati in base a tali valori e il punteggio aggregato
+        determina l'azione da intraprendere.
 
         Returns:
-            str: segnale finale calcolato ("buy", "sell" o "hold").
+            str: "buy", "sell" oppure "hold" in base al punteggio calcolato.
         """
-        if not self.pesi:
-            raise ValueError("Calcolare i pesi prima di generare un segnale.")
         if not self._input:
-            raise ValueError("Chiamare input_segnali prima di generare un segnale.")
+            raise ValueError("Nessun segnale di input fornito")
 
-        score = 0.0
-        for peso, valore in zip(self.pesi, self._input):
-            score += peso * valore
+        # Calcola i pesi a partire dagli input correnti
+        self.calcola_pesi(self._input)
 
-        if score > 0.1:
-            return 'buy'
-        elif score < -0.1:
-            return 'sell'
-        else:
-            return 'hold'
+        score = sum(p * v for p, v in zip(self.pesi, self._input))
+
+        if score > 0.3:
+            return "buy"
+        if score < -0.3:
+            return "sell"
+        return "hold"
 
     def backtest(self, giorni=30, num_indicatori=3):
         """Esegue un semplice backtest con dati di prezzo fittizi.
