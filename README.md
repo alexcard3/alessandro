@@ -15,3 +15,9 @@ included ``TrendFollowingBot``, ``BreakoutStrategyBot`` and ``MeanReversionBot``
 demonstrate how to feed signals into the manager. A more advanced example,
 ``BTC4H5MBot``, shows how to adapt a real trading script to the same
 interface.
+
+## Running tests
+
+Execute the test suite with::
+
+    python -m unittest
