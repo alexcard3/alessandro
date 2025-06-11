@@ -10,7 +10,7 @@ __all__ = [
     'TrendFollowingBot',
     'BreakoutStrategyBot',
     'MeanReversionBot',
-    'BTC4H5MBot',
+    'BTC4HSMBot',
 ]
 
 from .main import StrOneApp
@@ -21,7 +21,8 @@ from .metanet_manager import (
     receive_signal,
     reset_signals,
 )
+
 from .bots.trend_following import TrendFollowingBot
 from .bots.breakout_strategy import BreakoutStrategyBot
 from .bots.mean_reversion import MeanReversionBot
-from .bots.btc4h5m import BTC4H5MBot
+from .bots.btc4h5m import BTC4HSMBot
