@@ -1,0 +1,65 @@
+//@version=5
+indicator("Grid Range Dynamic Bot Helper", overlay=true)
+
+// === Inputs ===
+levelsCount = input.int(12, "Grid Levels", minval=1)
+refreshBars = input.int(100, "Refresh Interval", minval=1)
+lineColor = input.color(color.new(color.gray, 0), "Line Color")
+lineTransp = input.int(0, "Line Transparency", minval=0, maxval=100)
+showMedian = input.bool(true, "Show Median Line")
+useStatic = input.bool(false, "Use Static Range")
+
+// === Functions ===
+var float staticHigh = na
+var float staticLow = na
+var line[] gridLines = array.new<line>()
+var line medianLine = na
+var label rangeLabel = na
+
+f_clear_lines() =>
+    for i = 0 to array.size(gridLines) - 1
+        line.delete(array.get(gridLines, i))
+    array.clear(gridLines)
+    if not na(medianLine)
+        line.delete(medianLine)
+    if not na(rangeLabel)
+        label.delete(rangeLabel)
+
+f_draw_grid(highLevel, lowLevel) =>
+    range = highLevel - lowLevel
+    step = range / (levelsCount - 1)
+    f_clear_lines()
+    for i = 0 to levelsCount - 1
+        levelPrice = lowLevel + step * i
+        l = line.new(bar_index, levelPrice, bar_index, levelPrice, color=color.new(lineColor, lineTransp), extend=extend.right)
+        array.push(gridLines, l)
+    if showMedian
+        median = (highLevel + lowLevel) / 2
+        medianLine := line.new(bar_index, median, bar_index, median, color=color.new(color.orange, lineTransp), extend=extend.right)
+    txt = "Range: " + str.tostring(lowLevel, format.mintick) + " - " + str.tostring(highLevel, format.mintick)
+    rangeLabel := label.new(bar_index, (highLevel + lowLevel) / 2, txt, style=label.style_label_center, color=color.new(color.black, 70), textcolor=color.white)
+
+// === Main logic ===
+var float curHigh = na
+var float curLow = na
+var int barCounter = 0
+
+if barstate.isfirst
+    curHigh := ta.highest(high, refreshBars)
+    curLow := ta.lowest(low, refreshBars)
+    staticHigh := curHigh
+    staticLow := curLow
+
+if not useStatic
+    barCounter += 1
+    if barCounter >= refreshBars
+        curHigh := ta.highest(high, refreshBars)
+        curLow := ta.lowest(low, refreshBars)
+        barCounter := 0
+else
+    curHigh := staticHigh
+    curLow := staticLow
+
+if barCounter == 0 or barstate.isfirst
+    f_draw_grid(curHigh, curLow)
+
