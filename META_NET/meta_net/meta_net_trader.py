@@ -48,26 +48,38 @@ class MetaNetTrader:
         return self._input
 
     def genera_segnale(self):
-        """Combina gli input convertiti con i pesi per produrre il segnale finale.
+        """Produci il segnale finale usando la media dei segnali convertiti.
 
         Returns:
             str: segnale finale calcolato ("buy", "sell" o "hold").
         """
-        if not self.pesi:
-            raise ValueError("Calcolare i pesi prima di generare un segnale.")
         if not self._input:
             raise ValueError("Chiamare input_segnali prima di generare un segnale.")
+        if not all(isinstance(valore, (int, float)) for valore in self._input):
+            raise ValueError("I segnali convertiti devono essere numerici.")
 
-        score = 0.0
-        for peso, valore in zip(self.pesi, self._input):
-            score += peso * valore
+        # Media dei segnali in [-1, 1]: conserva la direzione (buy/sell/hold).
+        # NB: il peso NON deve derivare dal segnale stesso, altrimenti
+        # peso_i * segnale_i = const * segnale_i**2 >= 0 e il "sell" diventa
+        # irraggiungibile.
+        score = sum(self._input) / len(self._input)
 
-        if score > 0.1:
-            return 'buy'
-        elif score < -0.1:
-            return 'sell'
-        else:
-            return 'hold'
+        if score > 0.3:
+            return "buy"
+        if score < -0.3:
+            return "sell"
+        return "hold"
+
+    def affidabilita(self):
+        """Affidabilita' del sistema: cresce con R e C, cala con F e M.
+
+        E' indipendente dal segnale del singolo tick: modula la confidenza,
+        non la direzione.
+        """
+        denominatore = (1 + self.F) * (1 + self.M)
+        if denominatore == 0:
+            raise ValueError("denominatore nullo: F o M non possono valere -1")
+        return (self.R * self.C) / denominatore
 
     def backtest(self, giorni=30, num_indicatori=3):
         """Esegue un semplice backtest con dati di prezzo fittizi.
