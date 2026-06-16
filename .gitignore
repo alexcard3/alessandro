@@ -1,6 +1,0 @@
-# Python cache files
-__pycache__/
-*.py[cod]
-
-# Generated daily review reports
-reports/
