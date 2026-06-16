@@ -20,4 +20,29 @@ interface.
 
 Execute the test suite with::
 
-    python -m unittest
+    python -m unittest discover -s tests
+
+## Daily closed-task review
+
+The repository includes a scheduled GitHub Actions workflow that runs every day
+at 06:00 UTC. It executes the test suite and generates a report for consolidated
+Markdown task-list items (`- [x] ...`). Active items (`- [ ]`) are left untouched.
+
+Run the same review locally with::
+
+    python tools/daily_closed_task_review.py --output reports/daily-closed-task-review.md
+
+
+Optional email summaries can be enabled in GitHub Actions by setting these
+repository secrets: `DAILY_REVIEW_EMAIL_TO`, `DAILY_REVIEW_EMAIL_FROM`,
+`DAILY_REVIEW_SMTP_HOST`, and optionally `DAILY_REVIEW_SMTP_PORT`,
+`DAILY_REVIEW_SMTP_USER`, `DAILY_REVIEW_SMTP_PASSWORD`. If the email settings
+are missing, the workflow still generates the artifact and reports that email is
+not configured.
+
+Use `TASKS.md` as the lightweight canonical task registry until the project
+standardizes on a dedicated issue tracker.
+
+Before merging changes that affect the scheduled review, request a final Codex
+review in the pull request with `@codex review` and resolve or acknowledge the
+feedback.
