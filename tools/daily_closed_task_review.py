@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """Generate a daily review report for consolidated/closed project tasks.
 
-The scanner intentionally works only on closed Markdown task-list items
-(`- [x] ...`) and skips any item that looks work-in-progress. This gives the
-scheduled workflow a safe default: review consolidated decisions without
-interfering with active development.
+The scanner works on closed Markdown task-list items (`- [x] ...`), which are
+consolidated by definition. Active items (`- [ ]`) are not matched, so the
+scheduled workflow reviews completed decisions without touching live work.
 """
 from __future__ import annotations
 
@@ -25,15 +24,6 @@ DEFAULT_EXCLUDED_DIRS = {
     "venv",
     ".venv",
 }
-WIP_MARKERS = (
-    "wip",
-    "work in progress",
-    "workingprogress",
-    "working progress",
-    "in progress",
-    "todo",
-    "doing",
-)
 
 
 @dataclass(frozen=True)
@@ -50,11 +40,6 @@ def iter_markdown_files(root: Path) -> Iterable[Path]:
         yield path
 
 
-def is_wip(text: str) -> bool:
-    lowered = text.lower()
-    return any(marker in lowered for marker in WIP_MARKERS)
-
-
 def find_closed_tasks(root: Path) -> list[ClosedTask]:
     tasks: list[ClosedTask] = []
     for path in iter_markdown_files(root):
@@ -65,8 +50,6 @@ def find_closed_tasks(root: Path) -> list[ClosedTask]:
             if not (lowered.startswith("- [x]") or lowered.startswith("* [x]")):
                 continue
             task_text = stripped[5:].strip()
-            if is_wip(task_text):
-                continue
             tasks.append(ClosedTask(path.relative_to(root), line_number, task_text))
     return tasks
 
@@ -78,12 +61,12 @@ def build_report(root: Path, tasks: list[ClosedTask]) -> str:
         "",
         f"Generated at: `{generated_at}`",
         "",
-        "Scope: closed Markdown task-list items only (`- [x]`). Work-in-progress markers are ignored.",
+        "Scope: closed Markdown task-list items only (`- [x]`). Active items (`- [ ]`) are ignored.",
         "",
         "## Summary",
         "",
         f"- Closed tasks reviewed: **{len(tasks)}**",
-        "- Work-in-progress tasks: **skipped by design**",
+        "- Active tasks: **skipped by design**",
         "",
     ]
 
@@ -108,7 +91,7 @@ def build_report(root: Path, tasks: list[ClosedTask]) -> str:
         "1. Confirm the closed task still matches the current implementation.",
         "2. Check whether tests or documentation should be updated after the closure.",
         "3. Look for deployment, version, or configuration drift caused by the completed work.",
-        "4. Leave active or work-in-progress tasks untouched.",
+        "4. Leave active tasks untouched.",
         "",
     ])
     return "\n".join(lines)
@@ -131,7 +114,11 @@ def main() -> int:
 
     tasks = find_closed_tasks(root)
     output.write_text(build_report(root, tasks), encoding="utf-8")
-    print(f"Reviewed {len(tasks)} closed task(s). Report written to {output.relative_to(root)}")
+    try:
+        shown = output.relative_to(root)
+    except ValueError:
+        shown = output
+    print(f"Reviewed {len(tasks)} closed task(s). Report written to {shown}")
     return 0
 
 

@@ -26,8 +26,7 @@ Execute the test suite with::
 
 The repository includes a scheduled GitHub Actions workflow that runs every day
 at 06:00 UTC. It executes the test suite and generates a report for consolidated
-Markdown task-list items (`- [x] ...`) while intentionally skipping work-in-
-progress items.
+Markdown task-list items (`- [x] ...`). Active items (`- [ ]`) are left untouched.
 
 Run the same review locally with::
 
