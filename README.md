@@ -20,4 +20,18 @@ interface.
 
 Execute the test suite with::
 
-    python -m unittest
+    python -m unittest discover -s tests
+
+## Daily closed-task review
+
+The repository includes a scheduled GitHub Actions workflow that runs every day
+at 06:00 UTC. It executes the test suite and generates a report for consolidated
+Markdown task-list items (`- [x] ...`). Active items (`- [ ]`) are left untouched.
+
+Run the same review locally with::
+
+    python tools/daily_closed_task_review.py --output reports/daily-closed-task-review.md
+
+Before merging changes that affect the scheduled review, request a final Codex
+review in the pull request with `@codex review` and resolve or acknowledge the
+feedback.
